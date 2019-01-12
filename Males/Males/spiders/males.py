@@ -16,18 +16,10 @@ class MalesItem(scrapy.Item):
 class Males(scrapy.Spider):
     name = "males"
     allowed_domains = ["healthyceleb.com"]
-    start_urls = ('https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/',)
+    start_urls = ('https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/page/1', 'https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/page/2', 'https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/page/3', 'https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/page/4', 'https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/page/5',)
 
 
-    def parse(self, response):
-        for i in range(1,5):
-            newlink = self.start_urls+str(i)
-            self.start_urls.append(newlink) 
-            print(newlink)
-            yield scrapy.Request(newlink, callback = self.Nparse)
-
-
-    def Nparse (self, response):
+    def parse (self, response):
         links = response.xpath('//*[@class="td-ss-main-content"]//h3/a/@href').extract()
         print(links)
         for link in links:
@@ -38,6 +30,7 @@ class Males(scrapy.Spider):
         item = MalesItem()
         item['id'] = response.url.split("/")[-1]
         print(item['id'])
+        w = item['id']
         
         item['Name'] = response.xpath('//*/strong[contains(text(),"Quick Info")]/text()').extract_first().replace("Quick Info", "")
         
@@ -45,7 +38,8 @@ class Males(scrapy.Spider):
         
         item['Height'] = response.xpath('//*[@class="td-post-content"]/p[contains(text(),"cm")]/text()').extract_first().split("or")[1].replace("cm", "")
         
-        item['Weight'] = response.xpath('//*[@class="td-post-content"]/p[contains(text(),"kg")]/text()').extract_first().split("or")[0].replace("kg", "")
+        #item['Weight'] = response.xpath('//*[@class="td-post-content"]/p[contains(text(),"kg")]/text()').extract_first().split("or")[0].replace("kg", "")
+        item['Weight'] = response.xpath('//*[@id="post-'+str(w)+'"]/div[3]/table/tbody/tr[2]/td[2]/text()').extract_first().replace("kg", "")
 
         item['url'] = response.url
         yield item
