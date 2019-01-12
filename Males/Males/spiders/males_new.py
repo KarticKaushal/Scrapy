@@ -10,7 +10,6 @@ class MalesItem(scrapy.Item):
     Height = scrapy.Field()
     Weight = scrapy.Field()
     url = scrapy.Field()
-    pass
 
 
 class Males(scrapy.Spider):
@@ -37,17 +36,16 @@ class Males(scrapy.Spider):
     def parse_indetail(self, response):
         item = MalesItem()
         item['id'] = response.url.split("/")[-1]
-        print(item['id'])
-        w = item['id']
-        
+        #print(item['id'])
+
         item['Name'] = response.xpath('//*/strong[contains(text(),"Quick Info")]/text()').extract_first().replace("Quick Info", "")
         
-        item['Gender'] = response.xpath('//*[@id="td-outer-wrap"]/div[2]/div/div[1]/div/span[3]/a/text()').extract()
+        item['Gender'] = response.xpath('//*[@id="td-outer-wrap"]/div[2]/div/div[1]/div/span[3]/a/text()').extract_first().split()[0]
         
         item['Height'] = response.xpath('//*[@class="td-post-content"]/p[contains(text(),"cm")]/text()').extract_first().split("or")[1].replace("cm", "")
         
         #item['Weight'] = response.xpath('//*[@class="td-post-content"]/p[contains(text(),"kg")]/text()').extract_first().split("or")[0].replace("kg", "")
-        item['Weight'] = response.xpath('//*[@id="post-'+str(w)+'"]/div[3]/table/tbody/tr[2]/td[2]/text()').extract_first().replace("kg", "")
+        item['Weight'] = response.xpath('//*[@id="post-'+str(response.url.split("/")[-1])+'"]/div[3]/table/tbody/tr[2]/td[2]/text()').extract_first().replace("kg", "")
 
         item['url'] = response.url
         yield item
