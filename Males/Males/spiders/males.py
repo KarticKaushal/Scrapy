@@ -1,39 +1,52 @@
 import scrapy
+from scrapy.item import Item, Field
+from scrapy.http import Response
+
+class MalesItem(scrapy.Item):
+    # define the fields for your item here like:
+    id = scrapy.Field()
+    Name = scrapy.Field()
+    Gender = scrapy.Field()
+    Height = scrapy.Field()
+    Weight = scrapy.Field()
+    url = scrapy.Field()
+    pass
 
 
-class Male(scrapy.Spider):
-    name = "male"
+class Males(scrapy.Spider):
+    name = "males"
     allowed_domains = ["healthyceleb.com"]
-    start_urls = ('https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/page/1',)
+    start_urls = ('https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/',)
 
-    def parse (self, response):
-        links = response.xpath('//div[@class="td_module_1 td_module_wrap td-animation-stack td-meta-info-hide"]/h3[@class="entry-title td-module-title"]/a/@href').exctract()
-        i = 1
-        e = 1
-        o = 2
+
+    def parse(self, response):
+        for i in range(1,5):
+            newlink = response.xpath('/html/head/link['+str('i')]')
+            newlink = response.urljoin(i)
+             
+            print(newlink)
+            yield scrapy.Request(newlink, callback = self.Nparse)
+
+
+    def Nparse (self, response):
+        links = response.xpath('//*[@class="td-ss-main-content"]//h3/a/@href').extract()
+        print(links)
         for link in links:
             abs_url = response.urljoin(link)
-            if i%2 == 0:
-                url_next = '//*[@id="td-outer-wrap"]/div[4]/div/div/div[1]/div/div['+str(i+1)+']/div['+str(e)+']/div/h3/a/text()'
-            else:
-                url_next = '//*[@id="td-outer-wrap"]/div[4]/div/div/div[1]/div/div['+str(i+1)+']/div['+str(o)+']/div/h3/a/text()'
-            rating = response.xpath(url_next).exctract()
-            if (i <= len(links)):
-                i=i+1
-            yield scrapy.Request(abs_url, callback = self.parse_indetail, meta={'rating' : rating})
+            yield scrapy.Request(abs_url, callback = self.parse_indetail)
 
     def parse_indetail(self, response):
         item = MalesItem()
-        item['id'] = response.xpath('/html/head/link[4]/text()').exctract[0][:-1]
+        item['id'] = response.url.split("/")[-1]
+        print(item['id'])
         
-        item['Name'] = response.xpath('//*[@id="post-120352"]/div[3]/p[1]/strong/text()').exctract()[0]
+        item['Name'] = response.xpath('//*/strong[contains(text(),"Quick Info")]/text()').extract_first().replace("Quick Info", "")
         
-        item['Gender'] = response.xpath('//*[@id="td-outer-wrap"]/div[2]/div/div[1]/div/span[3]/a/text()').exctract()
+        item['Gender'] = response.xpath('//*[@id="td-outer-wrap"]/div[2]/div/div[1]/div/span[3]/a/text()').extract()
         
-        item['Height'] = response.xpath('//*[@id="post-120352"]/div[3]/p[16]/text()').exctract()[-1]
+        item['Height'] = response.xpath('//*[@class="td-post-content"]/p[contains(text(),"cm")]/text()').extract_first().split("or")[1].replace("cm", "")
         
-        item['Weight'] = response.xpath('//*[@id="post-120352"]/div[3]/table/tbody/tr[2]/td[2]/text()').exctract()
+        item['Weight'] = response.xpath('//*[@class="td-post-content"]/p[contains(text(),"kg")]/text()').extract_first().split("or")[0].replace("kg", "")
 
-        item['url'] = response.xpath('/html/head/link[4]/text()').exctract()
-
-        return item
+        item['url'] = response.url
+        yield item
