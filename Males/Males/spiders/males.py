@@ -21,9 +21,8 @@ class Males(scrapy.Spider):
 
     def parse(self, response):
         for i in range(1,5):
-            newlink = response.xpath('/html/head/link['+str('i')]')
-            newlink = response.urljoin(i)
-             
+            newlink = self.start_urls+str(i)
+            self.start_urls.append(newlink) 
             print(newlink)
             yield scrapy.Request(newlink, callback = self.Nparse)
 
