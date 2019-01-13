@@ -10,7 +10,7 @@ class MalesItem(scrapy.Item):
     Height = scrapy.Field()
     Weight = scrapy.Field()
     url = scrapy.Field()
-
+    pass
 
 class Males(scrapy.Spider):
     name = "males"
@@ -18,7 +18,7 @@ class Males(scrapy.Spider):
     start_urls = ('https://healthyceleb.com/category/statistics/sports-stars/male-sports-stars/page/1',)
 
 
-    def parse(self, response):
+    def parse(self, response):      # this fucntion crawls to different pages
         for i in range(2,6):
             temp = self.start_urls[0]
             nlink = temp.split()[0]
@@ -26,8 +26,8 @@ class Males(scrapy.Spider):
             self.start_urls = self.start_urls + newlink
             yield scrapy.Request(newlink[0], callback = self.Nparse)
 
-    def Nparse (self, response):
-        links = response.xpath('//*[@class="td-ss-main-content"]//h3/a/@href').extract()
+    def Nparse (self, response):    # this function choose from 20 different profiles in a page to scrape data
+        links = response.xpath('//*[@class="td-ss-main-content"]//h3/a/@href').extract() # links to diff profiles on page
         print(links)
         for link in links:
             abs_url = response.urljoin(link)
